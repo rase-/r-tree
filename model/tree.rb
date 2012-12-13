@@ -22,7 +22,35 @@ class RTree
     # We create a new root and place leaf and lleaf as children if root was split
   end
 
+  def delete(record)
+    leaf = find_leaf(record)
+    return nil if leaf.nil?
+    leaf.remove(record)
+    condense_tree(leaf)
+    self.root = leaf if self.root.children.one?
+  end
+
   private
+  def find_leaf(node, record)
+    if node.leaf?
+      return node if node.records.include? record
+      return nil
+    end
+
+    node.children.each do |child|
+      # we recursively search each overlapping child node
+      find_leaf(child, record)
+    end
+  end
+
+  def condense_tree(leaf)
+    node = leaf
+    eliminated_nodes = []
+    until node.root?
+      # TODO
+    end
+  end
+
   def find_all_overlapping_records(node, rectangle, all)
     if node.leaf?
       overlapping = find_overlapping_records(node.children, rectangle)
@@ -45,11 +73,10 @@ class RTree
 
   def choose_leaf(record)
     node = self.root
-    unless node.leaf? do
+    until node.leaf? do
       node = node.children.min do |a,b|
         order = a.enlargement_need(record) <=> b.enlargement_need(record)
         a.rectangle.area <=> b.rectangle.area if order == 0
-      end
       end
     end
   end
@@ -58,7 +85,9 @@ class RTree
     node = lleaf.nil? ? leaf : lleaf
     unless node.root?
       # tightly enclose all rectangles of node in its parent
-      # ... there's still more, TODO the rest of the method
+      node.parent.enclose(node)
+      # here we should do the weird splitting check
+      # here we should reselect node
     end
   end
 end

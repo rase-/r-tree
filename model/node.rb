@@ -29,4 +29,8 @@ class Node
   def enlargement_need(record)
 
   end
+
+  def remove(record)
+
+  end
 end
