@@ -1,4 +1,5 @@
 class Node
+  attr_reader :children, :rectangle
   # should change these values
   @@max_load = 10
   @@min_load = 2
@@ -6,7 +7,7 @@ class Node
   def initialize()
     @children = []
     # There should be a bounding box for leaf nodes, several for inner nodes
-    @bounding_box = nil
+    @rectangle = nil
   end
 
   def leaf?
@@ -18,6 +19,14 @@ class Node
   end
 
   def install(record)
+
+  end
+
+  def overlap(record)
+
+  end
+
+  def enlargement_need(record)
 
   end
 end
