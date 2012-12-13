@@ -14,7 +14,7 @@ class RTree
     leaf = choose_leaf(record)
     leaf.install(record)
     # Split if necessary
-    if leaf.room?
+    if leaf.full?
       leaf, lleaf = split_node(leaf)
     end
     # Propagate changes upwards

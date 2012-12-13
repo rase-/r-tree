@@ -13,8 +13,8 @@ class Node
     @children.empty?
   end
 
-  def room?
-    @children.length < @@max_load
+  def full?
+    @children.length > @@max_load
   end
 
   def install(record)
