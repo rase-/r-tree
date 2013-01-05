@@ -1,36 +1,30 @@
 class Node
-  attr_reader :children, :rectangle
-  # should change these values
-  @@max_load = 10
-  @@min_load = 2
+  attr_reader :children, :bounding_box, :points
 
-  def initialize()
+  def initialize(bounding_box)
+    @bounding_box = bounding_box
     @children = []
-    # There should be a bounding box for leaf nodes, several for inner nodes
-    @rectangle = nil
+    @points = []
   end
 
   def leaf?
     @children.empty?
   end
 
-  def full?
-    @children.length > @@max_load
+  def child_covering(point)
+    @children.each do |child|
+      return child if child.bounding_box.covers? point
+    end
+    false
   end
 
-  def install(record)
-
+  def add_point(point)
+    @points << point
   end
 
-  def overlap(record)
-
-  end
-
-  def enlargement_need(record)
-
-  end
-
-  def remove(record)
-
+  def clear
+    @points = []
+    @children = []
   end
 end
+
