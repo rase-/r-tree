@@ -3,36 +3,6 @@ require_relative "node.rb"
 
 Point = Struct.new(:x, :y)
 
-class Node
-  attr_reader :children, :bounding_box, :points
-
-  def initialize(bounding_box)
-    @bounding_box = bounding_box
-    @children = []
-    @points = []
-  end
-
-  def leaf?
-    @children.empty?
-  end
-
-  def child_covering(point)
-    @children.each do |child|
-      return child if child.bounding_box.covers? point
-    end
-    false
-  end
-
-  def add_point(point)
-    @points << point
-  end
-
-  def clear
-    @points = []
-    @children = []
-  end
-end
-
 class QuadTree
   attr_reader :root, :max_elements
 
@@ -54,6 +24,8 @@ class QuadTree
   def search(bounding_box)
     points_covered(@root, bounding_box, [])
   end
+
+  alias_method :rect_search, :search
 
   private
   def points_covered(node, bounding_box, points)

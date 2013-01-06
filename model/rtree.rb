@@ -1,4 +1,5 @@
 require_relative "boundingbox.rb"
+require_relative "node.rb"
 
 Point = Struct.new(:x, :y)
 
