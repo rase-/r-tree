@@ -1,8 +1,10 @@
 class Node
+  attr_accessor :parent
   attr_reader :children, :bounding_box, :points
 
   def initialize(bounding_box)
     @bounding_box = bounding_box
+    @parent = nil
     @children = []
     @points = []
   end
@@ -25,6 +27,10 @@ class Node
   def clear
     @points = []
     @children = []
+  end
+
+  def ==(node)
+    @bounding_box == node.bounding_box
   end
 end
 
