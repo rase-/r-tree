@@ -151,7 +151,7 @@ class RTree
     second_group.children << other_seed
     minimize_bounding_boxes(first_group, second_group)
     until entry_group.empty?
-      # additional escape here if one group has so few entries that all the rest must be added to it
+      # additional escape here if one group has so few entries that all the rest must be added to it, how? :P
 
       next_pick = pick_next(unassigned)
       chosen = choose_by_primary_criteria(first_group, second_group)
@@ -226,8 +226,6 @@ class RTree
 
   # quadratic split pick next
   def pick_next(nodes, first_group, second_group)
-    # TODO
-    # Here we will for each node compute wastefulness with combining node with both groups, and take the one that maximizes d1 and d2 difference
     chosen = nodes.max_by do |node|
       (enlargement_needed_to_consume_bounding_box(first_group, node) - enlargement_needed_to_consume_bounding_box(second_group, node).abs
     end
