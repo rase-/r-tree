@@ -10,7 +10,8 @@ class RTree
   def initialize(bounding_box, max=50, min=2)
     @root = Node.new(bounding_box)
     @max_elements = max
-    @min_elements = min # shouldbe <= max_elements/2
+    @min_elements = min # should be <= max_elements/2
+    @space = bounding_box # if we need to make new root nodes at some point we should know the space we're dealing with
   end
 
   def insert(point)
@@ -62,6 +63,10 @@ class RTree
     increased_area - area
   end
 
+  def enlargement_needed_to_consume_bounding_box(node, bounding_box)
+    # TODO
+  end
+
   def points_covered(node, bounding_box, points)
     if node.leaf?
       node.points.each do |point|
@@ -106,6 +111,10 @@ class RTree
 
   end
 
+  def minimize_bounding_boxes(*nodes)
+    nodes.each { |node| minimize_bounding_box(node) }
+  end
+
   def minimize_bounding_box(node)
     positive_infinity = 1.0/0
     negative_infinity = -1.0/0
@@ -128,6 +137,58 @@ class RTree
 
   # quadratic split
   def split_node(node)
+    unassigned = node.children
+    first_group = node
+    second_group = Node.new(node.bounding_box)
+    second_group.parent = node.parent
+    second_group.parent.children << second_grop unless second_group.root?
+    first_group.clear # references node
+
+
+    one_seed, other_seed = pick_seeds(unassigned)
+    first_group.children << one_seed
+    second_group.children << other_seed
+    minimize_bounding_boxes(first_group, second_group)
+    until entry_group.empty?
+      # additional escape here if one group has so few entries that all the rest must be added to it
+
+      next_pick = pick_next(unassigned)
+      enlargement_of_first = enlargement_needed_to_consume_bounding_box(first_group, next_pick.bounding_box)
+      enlargement_of_second = enlargement_needed_to_consume_bounding_box(second_group, next_pick.bounding_box)
+      if  enlargement_of_first < enlargement_of_second
+        chosen = first_group
+      elsif enlargement_of_first > enlargement_of_second
+        chosen = first_group
+      else
+        chosen = choose_by_secondary_criteria(first_group, second_group)
+      end
+      chosen.children << next_pick
+      minimize_bounding_box(chosen)
+    end
+
+    return first_group, second_group
+  end
+
+  def choose_by_secondary_criteria(first_node, second_node)
+    first_area = first_node.bounding_box.width * first_node.bounding_box.height
+    second_area = second_node.bounding_box.width * second_node.bounding_box.height
+    if first_area < second_area
+      first_node
+    elsif second_area < first_area
+      second_ndoe
+    else
+      if first_node.children.count < second_node.children.count
+        first_node
+      elsif second_node.children.count < first_node.children.count
+        second_node
+      else
+        Random.rand > 0.5 ? first_node : second_node # Choose by random
+      end
+    end
+  end
+
+  # quadratic split seedpicker
+  def pick_seeds(nodes)
     # TODO
   end
 
