@@ -3,13 +3,14 @@ require_relative "node.rb"
 
 Point = Struct.new(:x, :y)
 
+# In the r-tree each leaf represents only one data point
 class RTree
   attr_reader :root, :max_elements, :min_elements
 
   def initialize(bounding_box, max=50, min=2)
     @root = Node.new(bounding_box)
     @max_elements = max
-    @min_elements = min
+    @min_elements = min # shouldbe <= max_elements/2
   end
 
   def insert(point)
@@ -28,7 +29,7 @@ class RTree
 
   # Deletion done for a given area
   def delete(bounding_box)
-    # TODO
+    # TODO if need
   end
 
   # Query targets a specified area
@@ -106,12 +107,12 @@ class RTree
   end
 
   def minimize_bounding_box(node)
-    # TODO
+    # TODO  
   end
 
   # linear split
   def split_node(node)
-    
+    # TODO
   end
 
   def distribute_points_to_children(points, node)

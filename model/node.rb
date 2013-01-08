@@ -33,6 +33,7 @@ class Node
     @bounding_box == node.bounding_box
   end
 
+  # Only used by rtree
   def root?
     self.parent.nil?
   end
