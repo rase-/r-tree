@@ -213,11 +213,14 @@ class RTree
     most_wasteful_pair = node_pairs.max_by do |pair|
       combine_boxes(pair.first.bounding_box, pair.second.bounding_box).area - pair.first.bounding_box.area - pair.second.bounding_box.area
     end
+    # Delete the nodes from the unassigned list
+    nodes.delete most_wasteful_pair.first
+    nodes.delete most_wasteful_pair.second
     return most_wasteful_pair.first, most_wasteful_pair.second
   end
 
   def combine_boxes(first_box, second_box)
-    # TODO
+    # TODO, how should I do this? :P
   end
 
   # quadratic split pick next
