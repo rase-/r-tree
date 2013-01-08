@@ -225,8 +225,13 @@ class RTree
   end
 
   # quadratic split pick next
-  def pick_next(nodes)
+  def pick_next(nodes, first_group, second_group)
     # TODO
     # Here we will for each node compute wastefulness with combining node with both groups, and take the one that maximizes d1 and d2 difference
+    chosen = nodes.max_by do |node|
+      (enlargement_needed_to_consume_bounding_box(first_group, node) - enlargement_needed_to_consume_bounding_box(second_group, node).abs
+    end
+    nodes.delete chosen
+    return chosen
   end
 end
