@@ -219,6 +219,7 @@ class RTree
     return most_wasteful_pair.first, most_wasteful_pair.second
   end
 
+  # maybe replace this with area of combined box, no need to actually combine boxes
   def combine_boxes(first_box, second_box)
     # TODO, how should I do this? :P
   end
