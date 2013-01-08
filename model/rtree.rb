@@ -226,5 +226,6 @@ class RTree
   # quadratic split pick next
   def pick_next(nodes)
     # TODO
+    # Here we will for each node compute wastefulness with combining node with both groups, and take the one that maximizes d1 and d2 difference
   end
 end
