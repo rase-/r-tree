@@ -203,7 +203,7 @@ class RTree
       nodes.collect do |second|
         NodePair.new(first, second) unless first == second
       end
-    end
+    end.flatten
   end
 
   # quadratic split seedpicker
