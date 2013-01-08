@@ -32,5 +32,9 @@ class Node
   def ==(node)
     @bounding_box == node.bounding_box
   end
+
+  def root?
+    self.parent.nil?
+  end
 end
 

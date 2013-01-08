@@ -75,7 +75,7 @@ class RTree
   end
 
   def adjust_tree(left, right)
-    if left == @root # could change to if left.parent.nil?
+    if left.root?
       finish_adjusting(left, right)
       return
     end
@@ -94,8 +94,8 @@ class RTree
 
   def finish_adjusting(left, right)
     unless right.nil?
-      # don't really know what to do here
-      @root = Node.new(BoundingBox.new(Point.new(0,0), 9999999, 9999999))
+      # don't really know what to do here, i.e., should I redo root? how?
+      #@root = Node.new(BoundingBox.new(Point.new(0,0), 9999999, 9999999))
       @root.children << left
       @root.children << right
       left.parent = @root
