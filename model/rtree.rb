@@ -107,10 +107,26 @@ class RTree
   end
 
   def minimize_bounding_box(node)
-    # TODO  
+    positive_infinity = 1.0/0
+    negative_infinity = -1.0/0
+    min_point = Point.new(negative_infinity, negative_infinity)
+    max_point = Point.new(positive_infinity, positive_infinity)
+
+    node.children.each do |child|
+      # will i break child to parent relationship somewhere? this would be a good place to fix that
+      bbox = child.bounding_box
+      min_point.x = bbox.point.x if bbox.point.x < min_point.x
+      min_point.y = bbox.point.y if bbox.point.y < min_point.y
+      max_point.x = bbox.point.x + bbox.width if bbox.point.x + bbox.width > max_point.x
+      max_point.y = bbox.point.y + bbox.height if bbox.point.y + bbox.height > max_point.y
+    end
+
+    node.bounding_box.point = min_point
+    node.bounding_box.width = max_point.x - min_point.x
+    node.bounding_box.height = max_point.y - min_point.y
   end
 
-  # linear split
+  # quadratic split
   def split_node(node)
     # TODO
   end
