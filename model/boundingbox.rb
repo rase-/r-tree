@@ -7,6 +7,10 @@ class BoundingBox
     @height = height
   end
 
+  def area
+    @width * @height
+  end
+
   def covers?(point)
     (@point.x <= point.x && point.x <= @point.x + @width) && (@point.y <= point.y && point.y <= @point.y + @height)
   end

@@ -2,6 +2,7 @@ require_relative "boundingbox.rb"
 require_relative "node.rb"
 
 Point = Struct.new(:x, :y)
+NodePair = Struct.new(:first, :second)
 
 # In the r-tree each leaf represents only one data point
 class RTree
@@ -58,9 +59,8 @@ class RTree
     bbox = node.bounding_box
     width_increase = [bbox.point.x - point.x, point.x - (bbox.point.x + bbox.width)].min
     height_increase = [bbox.point.y - point.y, point.y - (bbox.point.y + bbox.height)].min
-    area = bbox.width * bbox.height
     increased_area = (bbox.width + width_increase) * (bbox.height + height_increase)
-    increased_area - area
+    increased_area - bbox.area
   end
 
   def enlargement_needed_to_consume_bounding_box(node, bounding_box)
@@ -136,6 +136,7 @@ class RTree
   end
 
   # quadratic split
+  # maybe refactor with some matcher DSL
   def split_node(node)
     unassigned = node.children
     first_group = node
@@ -153,15 +154,7 @@ class RTree
       # additional escape here if one group has so few entries that all the rest must be added to it
 
       next_pick = pick_next(unassigned)
-      enlargement_of_first = enlargement_needed_to_consume_bounding_box(first_group, next_pick.bounding_box)
-      enlargement_of_second = enlargement_needed_to_consume_bounding_box(second_group, next_pick.bounding_box)
-      if  enlargement_of_first < enlargement_of_second
-        chosen = first_group
-      elsif enlargement_of_first > enlargement_of_second
-        chosen = first_group
-      else
-        chosen = choose_by_secondary_criteria(first_group, second_group)
-      end
+      chosen = choose_by_primary_criteria(first_group, second_group)
       chosen.children << next_pick
       minimize_bounding_box(chosen)
     end
@@ -169,33 +162,66 @@ class RTree
     return first_group, second_group
   end
 
+  # maybe refactor with some matcher DSL
+  def choose_by_primary_criteria(first_node, second_node)
+    enlargement_of_first = enlargement_needed_to_consume_bounding_box(first_group, next_pick.bounding_box)
+    enlargement_of_second = enlargement_needed_to_consume_bounding_box(second_group, next_pick.bounding_box)
+    if  enlargement_of_first < enlargement_of_second
+      first_node
+    elsif enlargement_of_first > enlargement_of_second
+      second_node
+    else
+      choose_by_secondary_criteria(first_group, second_group)
+    end
+  end
+
+  # maybe refactor with some matcher DSL
   def choose_by_secondary_criteria(first_node, second_node)
-    first_area = first_node.bounding_box.width * first_node.bounding_box.height
-    second_area = second_node.bounding_box.width * second_node.bounding_box.height
+    first_area = first_node.bounding_box.area
+    second_area = second_node.bounding_box.area
     if first_area < second_area
       first_node
     elsif second_area < first_area
-      second_ndoe
+      second_node
     else
-      if first_node.children.count < second_node.children.count
+      choose_by_ternary_criteria(first_node, second_node)
+    end
+  end
+
+  def choose_by_ternary_criteria(first_node, second_node)
+    if first_node.children.count < second_node.children.count
         first_node
       elsif second_node.children.count < first_node.children.count
         second_node
       else
         Random.rand > 0.5 ? first_node : second_node # Choose by random
       end
+  end
+
+  def create_node_pairs(nodes)
+    nodes.collect do |first|
+      nodes.collect do |second|
+        NodePair.new(first, second) unless first == second
+      end
     end
   end
 
   # quadratic split seedpicker
   def pick_seeds(nodes)
+    node_pairs = create_node_pairs(nodes)
+    # Select the pair that has the most unused area
+    most_wasteful_pair = node_pairs.max_by do |pair|
+      combine_boxes(pair.first.bounding_box, pair.second.bounding_box).area - pair.first.bounding_box.area - pair.second.bounding_box.area
+    end
+    return most_wasteful_pair.first, most_wasteful_pair.second
+  end
+
+  def combine_boxes(first_box, second_box)
     # TODO
   end
 
-  def distribute_points_to_children(points, node)
-    points.each do |point|
-      child = node.child_covering point
-      child.points << point
-    end
+  # quadratic split pick next
+  def pick_next(nodes)
+    # TODO
   end
 end
