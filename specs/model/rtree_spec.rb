@@ -10,7 +10,12 @@ describe RTree do
 
   it "should insert first max_elements entries to root" do
     expect do
-      (1..50).each {|i| subject.insert(Point.new(i,i))}
-    end.to change {subject.root.children.count}.by(50)
+      (1..subject.max_elements).each {|i| subject.insert(Point.new(i,i))}
+    end.to change {subject.root.children.count}.by(1)
+  end
+
+  it "should split root when inserting one more than max_elements entries to tree" do
+    (1..(subject.max_elements + 1)).each {|i| subject.insert(Point.new(i,i))}
+    subject.root.children.should_not == subject.max_elements + 1
   end
 end
