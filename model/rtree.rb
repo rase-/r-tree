@@ -103,8 +103,8 @@ class RTree
 
   def finish_adjusting(left, right)
     unless right.nil?
-      # don't really know what to do here, i.e., should I redo root? how?
-      #@root = Node.new(BoundingBox.new(Point.new(0,0), 9999999, 9999999))
+      # don't really know what to do here, i.e., should I redo root? how? probably not any different than this if I keep space fixed
+      @root = Node.new(@space)
       @root.children << left
       @root.children << right
       left.parent = @root
@@ -154,7 +154,14 @@ class RTree
     second_group.children << other_seed
     minimize_bounding_boxes(first_group, second_group)
     until entry_group.empty?
-      # additional escape here if one group has so few entries that all the rest must be added to it, how? :P
+      if unfinished_node = splitting_terminable? first_group, second_group, unassigned
+        unassigned.each do |node|
+          first_group.children << node if unfinished_node == :first
+          second_group.children << node if unfinished_node == :second
+        end
+        minimize_bounding_boxes(first_group, second_group)
+        return first_group, second_group
+      end
 
       next_pick = pick_next(unassigned)
       chosen = choose_by_primary_criteria(first_group, second_group)
@@ -163,6 +170,16 @@ class RTree
     end
 
     return first_group, second_group
+  end
+
+  def splitting_terminable?(first_group, second_group, unassigned)
+    if first_group.children.count >= @max_elements and second_group.children.count + unassigned.children.count == @min_elements
+      :first
+    elsif second_group.children.count >= @max_elements and first_group.children.count + unassigned.children.count == @min_elements
+      :second
+    else
+      false
+    end
   end
 
   # maybe refactor with some matcher DSL
