@@ -227,7 +227,7 @@ class RTree
   # quadratic split pick next
   def pick_next(nodes, first_group, second_group)
     chosen = nodes.max_by do |node|
-      (enlargement_needed_to_consume_bounding_box(first_group, node) - enlargement_needed_to_consume_bounding_box(second_group, node).abs
+      (enlargement_needed_to_consume_bounding_box(first_group, node) - enlargement_needed_to_consume_bounding_box(second_group, node)).abs
     end
     nodes.delete chosen
     return chosen
