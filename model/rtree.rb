@@ -65,6 +65,9 @@ class RTree
 
   def enlargement_needed_to_consume_bounding_box(node, bounding_box)
     # TODO
+    # height enlargement needed
+    # width enlargement needed
+    # do i need to check anything else? don't think so
   end
 
   def points_covered(node, bounding_box, points)
