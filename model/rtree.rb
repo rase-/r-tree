@@ -25,7 +25,7 @@ class RTree
       left, right = split_node(leaf)
       adjust_tree(left, right)
     else
-      adjust_tree(left, nil)
+      adjust_tree(leaf, nil)
     end
   end
 
@@ -57,8 +57,8 @@ class RTree
   def enlargement_needed(node, point)
     return 0 if node.bounding_box.covers? point
     bbox = node.bounding_box
-    width_increase = [bbox.point.x - point.x, point.x - (bbox.point.x + bbox.width)].min
-    height_increase = [bbox.point.y - point.y, point.y - (bbox.point.y + bbox.height)].min
+    width_increase = [(bbox.point.x - point.x), (point.x - (bbox.point.x + bbox.width))].min
+    height_increase = [(bbox.point.y - point.y), (point.y - (bbox.point.y + bbox.height))].min
     increased_area = (bbox.width + width_increase) * (bbox.height + height_increase)
     increased_area - bbox.area
   end
@@ -121,9 +121,8 @@ class RTree
   def minimize_bounding_box(node)
     positive_infinity = 1.0/0
     negative_infinity = -1.0/0
-    min_point = Point.new(negative_infinity, negative_infinity)
-    max_point = Point.new(positive_infinity, positive_infinity)
-
+    min_point = Point.new(positive_infinity, positive_infinity)
+    max_point = Point.new(negative_infinity, negative_infinity)
     node.children.each do |child|
       # will i break child to parent relationship somewhere? this would be a good place to fix that
       bbox = child.bounding_box
@@ -154,7 +153,7 @@ class RTree
     second_group.children << other_seed
     minimize_bounding_boxes(first_group, second_group)
     until entry_group.empty?
-      if unfinished_node = splitting_terminable? first_group, second_group, unassigned
+      if unfinished_node = splitting_terminable?(first_group, second_group, unassigned)
         unassigned.each do |node|
           first_group.children << node if unfinished_node == :first
           second_group.children << node if unfinished_node == :second
