@@ -63,11 +63,11 @@ class RTree
     increased_area - bbox.area
   end
 
+  # Is this sufficient?
   def enlargement_needed_to_consume_bounding_box(node, bounding_box)
-    # TODO
-    # height enlargement needed
-    # width enlargement needed
-    # do i need to check anything else? don't think so
+    width_increase = (node.bounding_box.point.x - bounding_box.point.x + bounding_box.width).abs
+    height_increase = (node.bounding_box.point.y - bounding_box.point.y + bounding_box.height).abs
+    width_increase + height_increase
   end
 
   def points_covered(node, bounding_box, points)
