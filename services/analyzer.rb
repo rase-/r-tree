@@ -22,7 +22,7 @@ class Analyzer
     runtime = time do
       run_insertions
     end
-    message = "Insertion took #{runtime} ms for #{tree.class}"
+    message = "Insertion took #{runtime} ms for #{@tree.class}"
     @logger.log(message)
     message
   end
@@ -36,7 +36,7 @@ class Analyzer
       end
       file_handler.close
     end
-    message = "Queries run in #{runtime} ms for #{tree.class}"
+    message = "Queries run in #{runtime} ms for #{@tree.class}"
     @logger.log(message)
     message
   end
