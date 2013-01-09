@@ -221,7 +221,11 @@ class RTree
 
   # maybe replace this with area of combined box, no need to actually combine boxes
   def combine_boxes(first_box, second_box)
-    # TODO, how should I do this? :P
+    bounding_node = Node.new(@space)
+    bounding_node.children << Node.new(first_box)
+    bounding_node.children << Node.new(second_box)
+    minimize_bounding_box(bounding_node)
+    bounding_node.bounding_box 
   end
 
   # quadratic split pick next
