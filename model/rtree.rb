@@ -12,7 +12,7 @@ class RTree
     @root = Node.new(bounding_box)
     @max_elements = max
     @min_elements = min # should be <= max_elements/2
-    @space = bounding_box # if we need to make new root nodes at some point we should know the space we're dealing with
+    @space = bounding_box.deepcopy
   end
 
   def insert(point)
@@ -24,6 +24,7 @@ class RTree
     else
       adjust_tree(leaf, nil)
     end
+    puts @root.children.each { |child| puts child.bounding_box.inspect } if @root.children.count == 2 #debug
   end
 
   # Deletion done for a given area
@@ -88,7 +89,7 @@ class RTree
 
     minimize_bounding_box(left)
     unless right.nil?
-      minimize_bounding_box(right)
+      minimize_bounding_box(right) unless right.root? # we don't want to minimize root's bounding box
       if left.parent.children.count > @max_elements
         new_left, new_right = split_node(left.parent)
         adjust_tree(new_left, new_right)
@@ -101,14 +102,13 @@ class RTree
   def finish_adjusting(left, right)
     unless right.nil?
       # don't really know what to do here, i.e., should I redo root? how? probably not any different than this if I keep space fixed
-      @root = Node.new(@space)
+      @root = Node.new(@space.deepcopy)
       @root.children << left
       @root.children << right
       left.parent = @root
       right.parent = @root
     end
-    minimize_bounding_box(@root)
-
+    # I guess minimization of root isn't needed with fixed space since it isn't increased either, so deleted it from here
   end
 
   def minimize_bounding_boxes(*nodes)
@@ -173,7 +173,7 @@ class RTree
     first_group = node
     second_group = Node.new(node.bounding_box)
     second_group.parent = node.parent
-    second_group.parent.children << second_grop unless second_group.root?
+    second_group.parent.children << second_group unless second_group.root?
     first_group.clear # references node
 
 
@@ -191,8 +191,8 @@ class RTree
         return first_group, second_group
       end
 
-      next_pick = pick_next_point(unassigned)
-      chosen = choose_by_primary_criteria(first_group, second_group)
+      next_pick = pick_next_point(unassigned, first_group, second_group)
+      chosen = choose_by_primary_criteria(first_group, second_group, next_pick)
       chosen.points << next_pick
       minimize_bounding_box(chosen)
     end
@@ -225,8 +225,8 @@ class RTree
         return first_group, second_group
       end
 
-      next_pick = pick_next_child(unassigned)
-      chosen = choose_by_primary_criteria(first_group, second_group)
+      next_pick = pick_next_child(unassigned, first_group, second_group)
+      chosen = choose_by_primary_criteria(first_group, second_group, next_pick)
       chosen.children << next_pick
       minimize_bounding_box(chosen)
     end
@@ -245,15 +245,21 @@ class RTree
   end
 
   # maybe refactor with some matcher DSL
-  def choose_by_primary_criteria(first_node, second_node)
-    enlargement_of_first = enlargement_needed_to_consume_bounding_box(first_group, next_pick.bounding_box)
-    enlargement_of_second = enlargement_needed_to_consume_bounding_box(second_group, next_pick.bounding_box)
+  def choose_by_primary_criteria(first_node, second_node, next_pick)
+    if next_pick.is_a? Node
+      enlargement_of_first = enlargement_needed_to_consume_bounding_box(first_node, next_pick.bounding_box)
+      enlargement_of_second = enlargement_needed_to_consume_bounding_box(second_node, next_pick.bounding_box)
+    else
+      enlargement_of_first = enlargement_needed(first_node, next_pick)
+      enlargement_of_second = enlargement_needed(second_node, next_pick)
+    end
+
     if  enlargement_of_first < enlargement_of_second
       first_node
     elsif enlargement_of_first > enlargement_of_second
       second_node
     else
-      choose_by_secondary_criteria(first_group, second_group)
+      choose_by_secondary_criteria(first_node, second_node)
     end
   end
 
@@ -285,7 +291,7 @@ class RTree
       nodes.collect do |second|
         NodePair.new(first, second) unless first == second
       end
-    end.flatten
+    end.flatten.compact
   end
 
   def pick_seeds_from_points(points)
@@ -295,7 +301,7 @@ class RTree
     first, second = pick_seeds_from_nodes(nodes)
     points.delete first.bounding_box.point
     points.delete second.bounding_box.point
-    return first, second
+    return first.bounding_box.point, second.bounding_box.point
   end
 
   # quadratic split seedpicker
@@ -314,7 +320,7 @@ class RTree
   # maybe replace this with area of combined box, no need to actually combine boxes
   # Creates a box that covers the given two boxes as tightly as possible
   def create_superbox(first_box, second_box)
-    bounding_node = Node.new(@space)
+    bounding_node = Node.new(@space.deepcopy)
     bounding_node.children << Node.new(first_box)
     bounding_node.children << Node.new(second_box)
     minimize_bounding_box(bounding_node)

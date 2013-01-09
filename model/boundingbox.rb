@@ -26,4 +26,10 @@ class BoundingBox
   def ==(box)
     @point == box.point && @width == box.width && @height == box.height
   end
+
+  def deepcopy
+    copy = self.clone
+    copy.point = Point.new(self.point.x, self.point.y)
+    return copy
+  end
 end

@@ -15,6 +15,18 @@ describe RTree do
   context "after inserting one more than max elements to tree" do
     before { (1..(1 + subject.max_elements)).each { |i| subject.insert(Point.new(i, i)) } }
 
+    its(:root) {should_not be_leaf}
+
     its(:root) { should have(2).children }
+
+    its(:root) { should have(0).points }
+
+    it "should return (1,1), (2,2) and (3,3) when searching with box (1,1), width: 2, height: 2" do
+      points = subject.search(BoundingBox.new(Point.new(1,1), 2, 2))
+      points.count.should == 3
+      points.include?(Point.new(1,1)).should be_true
+      points.include?(Point.new(2,2)).should be_true
+      points.include?(Point.new(3,3)).should be_true
+    end
   end
 end
