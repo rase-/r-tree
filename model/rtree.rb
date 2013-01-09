@@ -211,7 +211,7 @@ class RTree
     node_pairs = create_node_pairs(nodes)
     # Select the pair that has the most unused area
     most_wasteful_pair = node_pairs.max_by do |pair|
-      combine_boxes(pair.first.bounding_box, pair.second.bounding_box).area - pair.first.bounding_box.area - pair.second.bounding_box.area
+      create_superbox(pair.first.bounding_box, pair.second.bounding_box).area - pair.first.bounding_box.area - pair.second.bounding_box.area
     end
     # Delete the nodes from the unassigned list
     nodes.delete most_wasteful_pair.first
@@ -220,7 +220,8 @@ class RTree
   end
 
   # maybe replace this with area of combined box, no need to actually combine boxes
-  def combine_boxes(first_box, second_box)
+  # Creates a box that covers the given two boxes as tightly as possible
+  def create_superbox(first_box, second_box)
     bounding_node = Node.new(@space)
     bounding_node.children << Node.new(first_box)
     bounding_node.children << Node.new(second_box)
