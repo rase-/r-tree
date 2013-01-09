@@ -21,12 +21,28 @@ describe RTree do
 
     its(:root) { should have(0).points }
 
-    it "should return (1,1), (2,2) and (3,3) when searching with box (1,1), width: 2, height: 2" do
+    it "should return (1,1), (2,2) and (3,3) when searching with box: point: (1,1), width: 2, height: 2" do
       points = subject.search(BoundingBox.new(Point.new(1,1), 2, 2))
       points.count.should == 3
       points.include?(Point.new(1,1)).should be_true
       points.include?(Point.new(2,2)).should be_true
       points.include?(Point.new(3,3)).should be_true
+    end
+
+    it "should return point (50,50) when searching only for that point" do
+      points = subject.search(BoundingBox.new(Point.new(50, 50), 0, 0))
+      points.count.should == 1
+      points.first.should == Point.new(50,50)
+    end
+
+    it "should not return any points when searching with box: point: (4,5), width: 0, height: 0" do
+      points = subject.search(BoundingBox.new(Point.new(4,5), 0, 0))
+      points.should be_empty
+    end
+
+    it "should not return any points when searching with box: point: (60, 60), width: 10, height: 10" do
+      points = subject.search(BoundingBox.new(Point.new(60, 60), 10, 10))
+      points.should be_empty
     end
   end
 end

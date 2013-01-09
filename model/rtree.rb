@@ -24,7 +24,6 @@ class RTree
     else
       adjust_tree(leaf, nil)
     end
-    puts @root.children.each { |child| puts child.bounding_box.inspect } if @root.children.count == 2 #debug
   end
 
   # Deletion done for a given area
