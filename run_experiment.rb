@@ -1,5 +1,3 @@
-require "rubygems"
-require "geoutm"
 require_relative "model/quadtree.rb"
 require_relative "services/analyzer.rb"
 
