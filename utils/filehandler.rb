@@ -9,12 +9,12 @@ class FileHandler
     @file = nil
   end
 
-  def begin
+  def open
     @file = File.open(filename, "r")
   end
 
   def finished?
-    @file.any?
+    not @file.any?
   end
 
   def handle_row
