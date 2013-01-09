@@ -5,17 +5,16 @@ describe RTree do
   subject { RTree.new(bounding_box) }
 
   it "should insert first entry to root" do
-    expect {subject.insert(Point.new(1, 1))}.to change {subject.root.children.count}.by(1)
+    expect { subject.insert(Point.new(1, 1)) }.to change { subject.root.points.count }.by(1)
   end
 
-  it "should insert first max_elements entries to root" do
-    expect do
-      (1..subject.max_elements).each {|i| subject.insert(Point.new(i,i))}
-    end.to change {subject.root.children.count}.by(1)
+  it "should insert max_elements first inserts to root" do
+    expect { (1..subject.max_elements).each { |i| subject.insert(Point.new(i, i)) } }.to change { subject.root.points.count }.by(subject.max_elements)
   end
 
-  it "should split root when inserting one more than max_elements entries to tree" do
-    (1..(subject.max_elements + 1)).each {|i| subject.insert(Point.new(i,i))}
-    subject.root.children.should_not == subject.max_elements + 1
+  context "after inserting one more than max elements to tree" do
+    before { (1..(1 + subject.max_elements)).each { |i| subject.insert(Point.new(i, i)) } }
+
+    its(:root) { should have(2).children }
   end
 end

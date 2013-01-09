@@ -16,12 +16,9 @@ class RTree
   end
 
   def insert(point)
-    node = Node.new(BoundingBox.new(point, 0, 0))
-    node.add_point point
     leaf = choose_leaf(@root, point)
-    leaf.children << node
-    node.parent = leaf
-    if leaf.children.count > @max_elements
+    leaf.points << point
+    if leaf.points.count > @max_elements
       left, right = split_node(leaf)
       adjust_tree(left, right)
     else
@@ -119,6 +116,32 @@ class RTree
   end
 
   def minimize_bounding_box(node)
+    if node.leaf?
+      minimize_bounding_box_of_leaf(node)
+    else
+      minimize_bounding_box_of_inner_node(node)
+    end
+  end
+
+  def minimize_bounding_box_of_leaf(node)
+    positive_infinity = 1.0/0
+    negative_infinity = -1.0/0
+    min_point = Point.new(positive_infinity, positive_infinity)
+    max_point = Point.new(negative_infinity, negative_infinity)
+
+    node.points.each do |point|
+      min_point.x = point.x if point.x < min_point.x
+      min_point.y = point.y if point.y < min_point.y
+      max_point.x = point.x if point.x > max_point.x
+      max_point.y = point.y if point.y > max_point.y
+    end
+
+    node.bounding_box.point = min_point
+    node.bounding_box.width = max_point.x - min_point.x
+    node.bounding_box.height = max_point.y - min_point.y
+  end
+
+  def minimize_bounding_box_of_inner_node(node)
     positive_infinity = 1.0/0
     negative_infinity = -1.0/0
     min_point = Point.new(positive_infinity, positive_infinity)
@@ -137,10 +160,16 @@ class RTree
     node.bounding_box.height = max_point.y - min_point.y
   end
 
-  # quadratic split
-  # maybe refactor with some matcher DSL
   def split_node(node)
-    unassigned = node.children
+    if node.leaf?
+      split_leaf(node)
+    else
+      split_inner_node(node)
+    end
+  end
+
+  def split_leaf(node)
+    unassigned = node.points
     first_group = node
     second_group = Node.new(node.bounding_box)
     second_group.parent = node.parent
@@ -148,11 +177,45 @@ class RTree
     first_group.clear # references node
 
 
-    one_seed, other_seed = pick_seeds(unassigned)
+    one_seed, other_seed = pick_seeds_from_points(unassigned)
+    first_group.points << one_seed
+    second_group.points << other_seed
+    minimize_bounding_boxes(first_group, second_group)
+    until unassigned.empty?
+      if unfinished_node = splitting_terminable?(first_group, second_group, unassigned)
+        unassigned.each do |point|
+          first_group.points << point if unfinished_node == :first
+          second_group.points << point if unfinished_node == :second
+        end
+        minimize_bounding_boxes(first_group, second_group)
+        return first_group, second_group
+      end
+
+      next_pick = pick_next_point(unassigned)
+      chosen = choose_by_primary_criteria(first_group, second_group)
+      chosen.points << next_pick
+      minimize_bounding_box(chosen)
+    end
+
+    return first_group, second_group
+  end
+
+  # quadratic split
+  # maybe refactor with some matcher DSL
+  def split_inner_node(node)
+    unassigned = node.children 
+    first_group = node
+    second_group = Node.new(node.bounding_box)
+    second_group.parent = node.parent
+    second_group.parent.children << second_grop unless second_group.root?
+    first_group.clear # references node
+
+
+    one_seed, other_seed = pick_seeds_from_nodes(unassigned)
     first_group.children << one_seed
     second_group.children << other_seed
     minimize_bounding_boxes(first_group, second_group)
-    until entry_group.empty?
+    until unassigned.empty?
       if unfinished_node = splitting_terminable?(first_group, second_group, unassigned)
         unassigned.each do |node|
           first_group.children << node if unfinished_node == :first
@@ -162,7 +225,7 @@ class RTree
         return first_group, second_group
       end
 
-      next_pick = pick_next(unassigned)
+      next_pick = pick_next_child(unassigned)
       chosen = choose_by_primary_criteria(first_group, second_group)
       chosen.children << next_pick
       minimize_bounding_box(chosen)
@@ -172,9 +235,9 @@ class RTree
   end
 
   def splitting_terminable?(first_group, second_group, unassigned)
-    if first_group.children.count >= @max_elements and second_group.children.count + unassigned.children.count == @min_elements
+    if first_group.children.count >= @max_elements and second_group.children.count + unassigned.count == @min_elements
       :first
-    elsif second_group.children.count >= @max_elements and first_group.children.count + unassigned.children.count == @min_elements
+    elsif second_group.children.count >= @max_elements and first_group.children.count + unassigned.count == @min_elements
       :second
     else
       false
@@ -225,8 +288,18 @@ class RTree
     end.flatten
   end
 
+  def pick_seeds_from_points(points)
+    nodes = points.collect do |point|
+      Node.new(BoundingBox.new(point, 0, 0))
+    end
+    first, second = pick_seeds_from_nodes(nodes)
+    points.delete first.bounding_box.point
+    points.delete second.bounding_box.point
+    return first, second
+  end
+
   # quadratic split seedpicker
-  def pick_seeds(nodes)
+  def pick_seeds_from_nodes(nodes)
     node_pairs = create_node_pairs(nodes)
     # Select the pair that has the most unused area
     most_wasteful_pair = node_pairs.max_by do |pair|
@@ -249,11 +322,19 @@ class RTree
   end
 
   # quadratic split pick next
-  def pick_next(nodes, first_group, second_group)
+  def pick_next_child(nodes, first_group, second_group)
     chosen = nodes.max_by do |node|
       (enlargement_needed_to_consume_bounding_box(first_group, node) - enlargement_needed_to_consume_bounding_box(second_group, node)).abs
     end
     nodes.delete chosen
+    return chosen
+  end
+
+  def pick_next_point(points, first_group, second_group)
+    chosen = points.max_by do |point|
+      (enlargement_needed(first_group, point) - enlargement_needed(second_group, point)).abs
+    end
+    points.delete chosen
     return chosen
   end
 end
