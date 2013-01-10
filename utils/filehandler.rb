@@ -28,10 +28,16 @@ class FileHandler
 
   private
   def create_insertion(line)
-    # TODO, returns one single point to be inserted
+    x = line.split.first.to_i
+    y = line.split.last.to_i
+    Point.new(x, y)
   end
 
   def create_query(line)
-    # TODO, returns one single rectangle to be 
+    x = line.split.first.to_i
+    y = line.split[1].to_i
+    width = line.split[2].to_i
+    height = line.split[3].to_i
+    BoundingBox.new(Point.new(x, y), width, height)
   end
 end
