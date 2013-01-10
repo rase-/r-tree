@@ -1,0 +1,1 @@
+ruby run_experiment.rb data/generated_100000_examples.csv data/100000_queries_for_generated_data.csv 

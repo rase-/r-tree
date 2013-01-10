@@ -1,4 +1,5 @@
 require_relative "../../model/quadtree.rb"
+require_relative "../../model/point.rb"
 
 describe QuadTree do
   let(:space) { BoundingBox.new(Point.new(0, 0), 100, 100) }

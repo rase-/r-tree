@@ -1,0 +1,8 @@
+Insertion took 1.359967 ms for QuadTree
+Insertion took 1.360407 ms for QuadTree
+Insertion took 1.334333 ms for QuadTree
+Insertion took 1.335409 ms for QuadTree
+Insertion took 1.347713 ms for QuadTree
+Insertion took 1.344663 ms for QuadTree
+Insertion took 1.369069 ms for QuadTree
+Queries run in 354.27801 ms for QuadTree

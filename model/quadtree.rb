@@ -1,8 +1,6 @@
 require_relative "boundingbox.rb"
 require_relative "node.rb"
 
-Point = Struct.new(:x, :y)
-
 class QuadTree
   attr_reader :root, :max_elements
 
@@ -44,11 +42,11 @@ class QuadTree
   # needs refactoring
   def split_node(node)
     points = node.points
-    child_width = node.bounding_box.width / 2
-    child_height = node.bounding_box.height / 2
+    child_width = (node.bounding_box.width / 2.0).ceil
+    child_height = (node.bounding_box.height / 2.0).ceil
     p = node.bounding_box.point
     node.clear
-    node.children << Node.new(BoundingBox.new(node.bounding_box.point, child_width, child_height))
+    node.children << Node.new(BoundingBox.new(Point.new(p.x, p.y), child_width, child_height))
     node.children << Node.new(BoundingBox.new(Point.new(p.x + child_width, p.y), child_width, child_height))
     node.children << Node.new(BoundingBox.new(Point.new(p.x, p.y + child_height), child_width, child_height))
     node.children << Node.new(BoundingBox.new(Point.new(p.x + child_width, p.y + child_height), child_width, child_height))

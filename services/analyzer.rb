@@ -14,8 +14,9 @@ class Analyzer
   def run_insertions
     file_handler = FileHandler.new(@datafilename, :insertion)
     file_handler.open
-    until file_handler.finished? do
-      @tree.insert file_handler.handle_row
+    until file_handler.finished?
+      element = file_handler.handle_row
+      @tree.insert element
     end
     file_handler.close
   end

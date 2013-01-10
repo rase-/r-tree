@@ -1,7 +1,6 @@
 require_relative "boundingbox.rb"
 require_relative "node.rb"
 
-Point = Struct.new(:x, :y)
 NodePair = Struct.new(:first, :second)
 
 # In the r-tree each leaf represents only one data point
@@ -202,6 +201,7 @@ class RTree
   # quadratic split
   # maybe refactor with some matcher DSL
   def split_inner_node(node)
+    puts node.inspect
     unassigned = node.children 
     first_group = node
     second_group = Node.new(node.bounding_box)

@@ -1,4 +1,5 @@
 require_relative "../../model/rtree.rb"
+require_relative "../../model/point.rb"
 
 describe RTree do
   let(:bounding_box) { BoundingBox.new(Point.new(0,0), 100, 100) }

@@ -3,10 +3,9 @@ class FileHandler
 
   def initialize(filename, type)
     @types = [:insertion, :query]
-    @handlers = [:create_insertion, :create_query]
+    @handlers = {:insertion => :create_insertion, :query => :create_query}
     @filename = filename
     @type = type
-    @file = nil
   end
 
   def open
@@ -19,7 +18,7 @@ class FileHandler
 
   def handle_row
     line = @file.readline
-    send(handlers[@type], line)
+    self.send(@handlers[@type], line)
   end
 
   def close
@@ -29,18 +28,18 @@ class FileHandler
   private
   # Files in CSV format, so splitting done by ',' character
   def create_insertion(line)
-    split = line.split(",")
-    x = split.first.to_i
-    y = split.last.to_i
+    split_line = line.split(",")
+    x = split_line.first.to_i
+    y = split_line.last.to_i
     Point.new(x, y)
   end
 
   def create_query(line)
-    split = line.split(",")
-    x = split.first.to_i
-    y = split[1].to_i
-    width = split[2].to_i
-    height = split[3].to_i
+    split_line = line.split(",")
+    x = split_line.first.to_i
+    y = split_line[1].to_i
+    width = split_line[2].to_i
+    height = split_line[3].to_i
     BoundingBox.new(Point.new(x, y), width, height)
   end
 end
