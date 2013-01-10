@@ -205,7 +205,7 @@ class RTree
     first_group = node
     second_group = Node.new(node.bounding_box)
     second_group.parent = node.parent
-    second_group.parent.children << second_grop unless second_group.root?
+    second_group.parent.children << second_group unless second_group.root?
     first_group.clear # references node
 
     one_seed, other_seed = pick_seeds_from_nodes(unassigned)
