@@ -201,14 +201,12 @@ class RTree
   # quadratic split
   # maybe refactor with some matcher DSL
   def split_inner_node(node)
-    puts node.inspect
     unassigned = node.children 
     first_group = node
     second_group = Node.new(node.bounding_box)
     second_group.parent = node.parent
     second_group.parent.children << second_grop unless second_group.root?
     first_group.clear # references node
-
 
     one_seed, other_seed = pick_seeds_from_nodes(unassigned)
     first_group.children << one_seed
@@ -329,7 +327,7 @@ class RTree
   # quadratic split pick next
   def pick_next_child(nodes, first_group, second_group)
     chosen = nodes.max_by do |node|
-      (enlargement_needed_to_consume_bounding_box(first_group, node) - enlargement_needed_to_consume_bounding_box(second_group, node)).abs
+      (enlargement_needed_to_consume_bounding_box(first_group, node.bounding_box) - enlargement_needed_to_consume_bounding_box(second_group, node.bounding_box)).abs
     end
     nodes.delete chosen
     return chosen

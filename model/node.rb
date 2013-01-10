@@ -30,7 +30,7 @@ class Node
   end
 
   def ==(node)
-    @bounding_box == node.bounding_box and @points == @points
+    @bounding_box == node.bounding_box and @points == node.points
   end
 
   # Only used by rtree
