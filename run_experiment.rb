@@ -6,7 +6,7 @@ datafilename = ARGV[0]
 queryfilename = ARGV[1]
 
 # The code to decide space and initialize trees
-space = BoundingBox.new(Point.new(0,0),1,1) # replace this with actual space
+space = BoundingBox.new(Point.new(160000,0),834000 - 160000,9300000) # replace this with actual space, which is data specific
 quadtree = QuadTree.new(space)
 rtree = RTree.new(space)
 
@@ -21,4 +21,3 @@ puts quadtree_analyzer.run_and_analyze_queries
 # Analyze R-tree
 puts rtree_analyzer.run_and_analyze_insertions
 puts rtree_analyzer.run_and_analyze_queries
-

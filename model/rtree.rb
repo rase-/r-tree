@@ -276,9 +276,9 @@ class RTree
   end
 
   def choose_by_ternary_criteria(first_node, second_node)
-    if first_node.children.count < second_node.children.count
+    if first_node.children.count < second_node.children.count or first_node.points.count < second_node.points.count
         first_node
-      elsif second_node.children.count < first_node.children.count
+      elsif second_node.children.count < first_node.children.count or second_node.points.count < first_node.points.count
         second_node
       else
         Random.rand > 0.5 ? first_node : second_node # Choose by random
