@@ -19,8 +19,8 @@ class QueryGenerator
     point = Point.new(x, y)
 
     # Only take into account remaining space in randomizing width and height
-    width = Random.rand(0..(@space.x + @space.width - point.x))
-    height = Random.rand(0..(@space.y + @space.height - point.y))
+    width = Random.rand(0..(@space.point.x + @space.width - point.x))
+    height = Random.rand(0..(@space.point.y + @space.height - point.y))
     BoundingBox.new(Point.new(x, y), width, height).to_s
   end
 end

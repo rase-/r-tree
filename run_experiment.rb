@@ -6,7 +6,7 @@ datafilename = ARGV[0]
 queryfilename = ARGV[1]
 
 # The code to decide space and initialize trees
-space = BoundingBox.new(Point.new(160000,0),834000 - 160000,9300000) # replace this with actual space, which is data specific
+space = BoundingBox.new(0,0, 100000, 100000) # the space of generated data, need to devise one for the real spatial data
 quadtree = QuadTree.new(space)
 rtree = RTree.new(space)
 
