@@ -7,6 +7,11 @@ class Logger
   end
 
   def log(message)
-    @file.write message + "\n"
+    @file.write(timestamp + " " + message + "\n")
+  end
+
+  private
+  def timestamp
+    "[" + Time.now.to_s + "]"
   end
 end
