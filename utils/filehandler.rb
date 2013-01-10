@@ -27,17 +27,20 @@ class FileHandler
   end 
 
   private
+  # Files in CSV format, so splitting done by ',' character
   def create_insertion(line)
-    x = line.split.first.to_i
-    y = line.split.last.to_i
+    split = line.split(",")
+    x = split.first.to_i
+    y = split.last.to_i
     Point.new(x, y)
   end
 
   def create_query(line)
-    x = line.split.first.to_i
-    y = line.split[1].to_i
-    width = line.split[2].to_i
-    height = line.split[3].to_i
+    split = line.split(",")
+    x = split.first.to_i
+    y = split[1].to_i
+    width = split[2].to_i
+    height = split[3].to_i
     BoundingBox.new(Point.new(x, y), width, height)
   end
 end
