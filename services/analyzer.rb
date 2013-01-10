@@ -21,7 +21,7 @@ class Analyzer
   end
 
   def run_and_analyze_insertions
-    runtime = time do
+    runtime = take_time do
       run_insertions
     end
     stats_message = "Insertion took #{runtime} ms for #{@tree.class}"
@@ -30,7 +30,7 @@ class Analyzer
   end
 
   def run_and_analyze_queries
-    runtime = time do
+    runtime = take_time do
       file_handler = FileHandler.new(@queryfilename, :query)
       file_handler.open
       runtime = until file_handler.finished? do
@@ -44,7 +44,7 @@ class Analyzer
   end
 
   private
-  def time
+  def take_time
     start_time = Time.now
     yield
     end_time = Time.now

@@ -9,8 +9,4 @@ class Logger
   def log(message)
     @file.write message + "\n"
   end
-
-  def close
-    @file.close
-  end
 end

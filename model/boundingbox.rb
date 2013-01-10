@@ -32,4 +32,9 @@ class BoundingBox
     copy.point = Point.new(self.point.x, self.point.y)
     return copy
   end
+
+  # In csv format: x,y,width,height
+  def to_s
+    "#{self.point.x},#{self.point.y},#{self.width},#{self.height}"
+  end
 end
