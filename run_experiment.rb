@@ -13,12 +13,12 @@ quadtree = QuadTree.new(space)
 rtree = RTree.new(space)
 
 # The code to initialize analyzer with appropriate data, maybe change data files to be sent as parameters
-#quadtree_analyzer = Analyzer.new quadtree, datafilename, queryfilename
+quadtree_analyzer = Analyzer.new quadtree, datafilename, queryfilename
 rtree_analyzer = Analyzer.new rtree, datafilename, queryfilename
 
 # Analyze QuadTree
-#puts quadtree_analyzer.run_and_analyze_insertions
-#puts quadtree_analyzer.run_and_analyze_queries
+puts quadtree_analyzer.run_and_analyze_insertions
+puts quadtree_analyzer.run_and_analyze_queries
 
 # Analyze R-tree
 puts rtree_analyzer.run_and_analyze_insertions
