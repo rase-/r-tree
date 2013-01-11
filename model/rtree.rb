@@ -146,6 +146,7 @@ class RTree
     max_point = Point.new(negative_infinity, negative_infinity)
     node.children.each do |child|
       # will i break child to parent relationship somewhere? this would be a good place to fix that
+      child.parent = node # just in case, let's see what happens
       bbox = child.bounding_box
       min_point.x = bbox.point.x if bbox.point.x < min_point.x
       min_point.y = bbox.point.y if bbox.point.y < min_point.y

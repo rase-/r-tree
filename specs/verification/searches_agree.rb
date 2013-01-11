@@ -47,8 +47,16 @@ describe "Search" do
       search_box = BoundingBox.new(Point.new(280000,2700000), 20000, 200000)
       quadtree_results = quadtree.search search_box
       rtree_results = rtree.search search_box
-      puts "RESULTS: " + quadtree_results.count.to_s
-      puts "RESULTS: " + rtree_results.count.to_s
+      puts "RESULTS: #{quadtree_results.count}" # start debug
+      puts "RESULTS: #{rtree_results.count}"
+      not_included = []
+      quadtree_results.each do |point|
+        not_included << point unless rtree_results.include? point
+      end
+      puts "NOT INCLUDED: " + not_included.count.to_s
+      puts not_included.inspect
+      puts "UNIQUE IN RTREE_RESULTS: #{rtree_results.uniq.count}"
+      puts "UNIQUE IN QUADTREE_RESULTS: #{quadtree_results.uniq.count}" # end debug
       quadtree_results.count.should == rtree_results.count
     end
   end
