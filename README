@@ -1,1 +1,3 @@
 Analysis of running time for searches of spatial data from quadtree and R-tree. Analysis of insertion time also recorded. 
+
+Still buggy. Need to find mistakes in RTree source
