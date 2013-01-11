@@ -25,11 +25,6 @@ class RTree
     end
   end
 
-  # Deletion done for a given area
-  def delete(bounding_box)
-    # TODO if need
-  end
-
   # Query targets a specified area
   def search(bounding_box)
     points_covered(@root, bounding_box, [])
@@ -170,7 +165,7 @@ class RTree
   def split_leaf(node)
     unassigned = node.points
     first_group = node
-    second_group = Node.new(node.bounding_box)
+    second_group = Node.new(node.bounding_box.deepcopy)
     second_group.parent = node.parent
     second_group.parent.children << second_group unless second_group.root?
     first_group.clear # references node
@@ -204,7 +199,7 @@ class RTree
   def split_inner_node(node)
     unassigned = node.children 
     first_group = node
-    second_group = Node.new(node.bounding_box)
+    second_group = Node.new(node.bounding_box.deepcopy)
     second_group.parent = node.parent
     second_group.parent.children << second_group unless second_group.root?
     first_group.clear # references node
@@ -233,9 +228,9 @@ class RTree
   end
 
   def splitting_terminable?(first_group, second_group, unassigned)
-    if first_group.children.count >= @max_elements and second_group.children.count + unassigned.count == @min_elements
+    if first_group.children.count >= @min_elements and second_group.children.count + unassigned.count == @min_elements
       :first
-    elsif second_group.children.count >= @max_elements and first_group.children.count + unassigned.count == @min_elements
+    elsif second_group.children.count >= @min_elements and first_group.children.count + unassigned.count == @min_elements
       :second
     else
       false
@@ -285,11 +280,13 @@ class RTree
   end
 
   def create_node_pairs(nodes)
-    nodes.collect do |first|
-      nodes.collect do |second|
-        NodePair.new(first, second) unless first == second # Error probably lying here (the unique error)
+    node_pairs = []
+    0.upto nodes.count - 1 do |i|
+      (i + 1).upto nodes.count - 1 do |j| # Don't want to pair with itself
+        node_pairs << NodePair.new(nodes[i], nodes[j])
       end
-    end.flatten.compact
+    end
+    node_pairs
   end
 
   def pick_seeds_from_points(points)
@@ -297,8 +294,8 @@ class RTree
       Node.new(BoundingBox.new(point, 0, 0))
     end
     first, second = pick_seeds_from_nodes(nodes)
-    points.delete first.bounding_box.point
-    points.delete second.bounding_box.point
+    points.delete_at points.index(first.bounding_box.point)
+    points.delete_at points.index(second.bounding_box.point)
     return first.bounding_box.point, second.bounding_box.point
   end
 
