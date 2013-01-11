@@ -9,8 +9,9 @@ queryfilename = ARGV[1]
 
 # The code to decide space and initialize trees
 # space of real converted data: 246960 2712194 68865 73104
-#space = BoundingBox.new(Point.new(0, 0), 9999999999, 9999999999) # apparently doesn't work atm (the space finding algorithm)
-space = BoundingBox.new(Point.new(0,0), 100000, 100000) # the space of generated data, need to devise one for the real spatial data
+#space = BoundingBox.new(Point.new(246960, 2712194), 68865, 73104)
+space = BoundingBox.new(Point.new(0, 0), 99999999999, 9999999999) # apparently doesn't work atm (the space finding algorithm)
+#space = BoundingBox.new(Point.new(0,0), 100000, 100000) # the space of generated data, need to devise one for the real spatial data
 quadtree = QuadTree.new(space)
 rtree = RTree.new(space)
 

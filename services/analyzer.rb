@@ -44,11 +44,12 @@ class Analyzer
     stats_message
   end
 
+  # Returns time taken to execute given block of code in milliseconds
   private
   def take_time
     start_time = Time.now
     yield
     end_time = Time.now
-    end_time - start_time
+    (end_time - start_time) * 1000 # Converting to ms from s (default of Time object - Time object return value)
   end
 end

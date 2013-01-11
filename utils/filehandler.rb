@@ -6,6 +6,7 @@ class FileHandler
     @handlers = {:insertion => :create_insertion, :query => :create_query}
     @filename = filename
     @type = type
+    @rows_handled = 1
   end
 
   def open
@@ -13,15 +14,17 @@ class FileHandler
   end
 
   def finished?
-    not @file.any?
+    @file.eof
   end
 
   def handle_row
     line = @file.readline
+    @rows_handled += 1
     self.send(@handlers[@type], line)
   end
 
   def close
+    puts "#{@rows_handled}"
     @file.close
   end 
 
@@ -30,7 +33,7 @@ class FileHandler
   def create_insertion(line)
     split_line = line.split(",")
     x = split_line.first.to_i
-    y = split_line.last.to_i
+    y = split_line[1].to_i # Can't use method last because of possible zone as third entry
     Point.new(x, y)
   end
 
