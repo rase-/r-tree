@@ -43,7 +43,7 @@ class QuadTree
 
   # needs refactoring
   def split_node(node)
-    return if node.depth >= @max_depth
+    return if (not @max_depth.nil?) and node.depth >= @max_depth
     points = node.points
     child_width = (node.bounding_box.width / 2.0).ceil
     child_height = (node.bounding_box.height / 2.0).ceil
