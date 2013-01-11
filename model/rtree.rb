@@ -287,7 +287,7 @@ class RTree
   def create_node_pairs(nodes)
     nodes.collect do |first|
       nodes.collect do |second|
-        NodePair.new(first, second) unless first == second
+        NodePair.new(first, second) unless first == second # Error probably lying here (the unique error)
       end
     end.flatten.compact
   end
