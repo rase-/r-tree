@@ -9,8 +9,8 @@ max_y = negative_infinity
 min_x = positive_infinity
 min_y = positive_infinity
 
-while file.any?
-  split = file.readline.split(",")
+file.each do |line|
+  split = line.split(",")
   x = split[0].to_i
   y = split[1].to_i
   # Zone ignored
