@@ -51,12 +51,5 @@ describe "Search" do
       puts "RESULTS: " + rtree_results.count.to_s
       quadtree_results.count.should == rtree_results.count
     end
-
-    it "should give same amount of results with quadtree and rtree for box: 100 100 100 100" do
-      search_box = BoundingBox.new(Point.new(100,100), 1000, 1000)
-      quadtree_results = quadtree.search search_box
-      rtree_results = rtree.search search_box
-      quadtree_results.count.should == rtree_results.count
-    end
   end
 end

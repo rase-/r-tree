@@ -21,6 +21,27 @@ class Analyzer
     file_handler.close
   end
 
+  def bulk_insert
+    file_handler = FileHandler.new(@datafilename, :insertion)
+    file_handler.open
+    elements = file_handler.handle_all
+    file_handler.close
+
+    elements.shuffle
+    elements.each do |element|
+      @tree.insert element
+    end
+  end
+
+  def bulk_insert_and_analyze
+    runtime = take_time do
+      bulk_insert
+    end
+    stats_message = "Bulk insertion and randomization of input took #{runtime} ms for #{@tree.class}"
+    @logger.log(stats_message)
+    stats_message
+  end
+
   def run_and_analyze_insertions
     runtime = take_time do
       run_insertions

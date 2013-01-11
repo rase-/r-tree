@@ -23,6 +23,14 @@ class FileHandler
     self.send(@handlers[@type], line)
   end
 
+  def handle_all
+    lines = @file.readlines
+    elements = lines.collect do |line|
+      self.send(@handlers[@type], line)
+    end
+    return elements
+  end
+
   def close
     puts "#{@rows_handled}"
     @file.close

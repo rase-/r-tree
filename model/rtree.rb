@@ -7,7 +7,7 @@ NodePair = Struct.new(:first, :second)
 class RTree
   attr_reader :root, :max_elements, :min_elements
 
-  def initialize(bounding_box, max=50, min=2)
+  def initialize(bounding_box, max=50, min=15)
     @root = Node.new(bounding_box)
     @max_elements = max
     @min_elements = min # should be <= max_elements/2

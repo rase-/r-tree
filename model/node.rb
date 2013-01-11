@@ -1,12 +1,14 @@
 class Node
-  attr_accessor :parent
+  attr_accessor :parent, :depth
   attr_reader :children, :bounding_box, :points
 
-  def initialize(bounding_box)
+  def initialize(bounding_box, parent=nil, depth=nil)
     @bounding_box = bounding_box
-    @parent = nil
+    @parent = parent
     @children = []
     @points = []
+    # Only used by quadtree
+    @depth = depth
   end
 
   def leaf?
