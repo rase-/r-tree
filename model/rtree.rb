@@ -1,10 +1,12 @@
 require_relative "boundingbox.rb"
 require_relative "node.rb"
+require_relative "boundingbox_searchable.rb"
 
 NodePair = Struct.new(:first, :second)
 
 # In the r-tree each leaf represents only one data point
 class RTree
+  include BoundingBoxSearchable
   attr_reader :root, :max_elements, :min_elements
 
   def initialize(bounding_box, max=50, min=15)
@@ -25,23 +27,12 @@ class RTree
     end
   end
 
-  # Query targets a specified area
-  def search(bounding_box)
-    points_covered(@root, bounding_box, [])
-  end
-
   private
   def choose_leaf(node, point)
     return node if node.leaf?
     child_with_min_enlargement = node.children[0]
     min_enlargement = enlargement_needed(child_with_min_enlargement, point)
-    node.children.each do |child|
-      enlargement_needed = enlargement_needed(child, point)
-      if enlargement_needed < min_enlargement
-        min_enlargement = enlargement_needed
-        child_with_min_enlargement = child
-      end
-    end
+    child_with_min_enlargement = node.children.min_by { |child| enlargement_needed(child, point) }
     return choose_leaf(child_with_min_enlargement, point)
   end
 
@@ -66,19 +57,6 @@ class RTree
     bounding_node.children << Node.new(bounding_box)
     minimize_bounding_box(bounding_node)
     bounding_node.bounding_box.area - node.bounding_box.area
-  end
-
-  def points_covered(node, bounding_box, points)
-    if node.leaf?
-      node.points.each do |point|
-        points << point if bounding_box.covers? point
-      end
-    end
-
-    node.children.each do |child|
-      points_covered(child, bounding_box, points) if child.bounding_box.intersects?(bounding_box)
-    end
-    points
   end
 
   def adjust_tree(left, right)
@@ -116,17 +94,20 @@ class RTree
   end
 
   def minimize_bounding_box(node)
-    if node.leaf?
-      minimize_bounding_box_of_leaf(node)
-    else
-      minimize_bounding_box_of_inner_node(node)
-    end
-  end
-
-  def minimize_bounding_box_of_leaf(node)
     min_point = Point.new(Float::INFINITY, Float::INFINITY)
     max_point = Point.new(-Float::INFINITY, -Float::INFINITY)
+    if node.leaf?
+      min_point, max_point = find_points_defining_minimum_bounding_box_of_leaf(node, min_point, max_point)
+    else
+      min_point, max_point = find_points_defining_minimum_bounding_box_of_inner_node(node, min_point, max_point)
+    end
 
+    node.bounding_box.point = min_point
+    node.bounding_box.width = max_point.x - min_point.x
+    node.bounding_box.height = max_point.y - min_point.y
+  end
+
+  def find_points_defining_minimum_bounding_box_of_leaf(node, min_point, max_point)
     node.points.each do |point|
       min_point.x = point.x if point.x < min_point.x
       min_point.y = point.y if point.y < min_point.y
@@ -134,17 +115,12 @@ class RTree
       max_point.y = point.y if point.y > max_point.y
     end
 
-    node.bounding_box.point = min_point
-    node.bounding_box.width = max_point.x - min_point.x
-    node.bounding_box.height = max_point.y - min_point.y
+    return min_point, max_point
   end
 
-  def minimize_bounding_box_of_inner_node(node)
-    min_point = Point.new(Float::INFINITY, Float::INFINITY)
-    max_point = Point.new(-Float::INFINITY, -Float::INFINITY)
+  def find_points_defining_minimum_bounding_box_of_inner_node(node, min_point, max_point)
     node.children.each do |child|
-      # will i break child to parent relationship somewhere? this would be a good place to fix that
-      child.parent = node # just in case, let's see what happens
+      child.parent = node # Making sure a child know's its parent
       bbox = child.bounding_box
       min_point.x = bbox.point.x if bbox.point.x < min_point.x
       min_point.y = bbox.point.y if bbox.point.y < min_point.y
@@ -152,9 +128,7 @@ class RTree
       max_point.y = bbox.point.y + bbox.height if bbox.point.y + bbox.height > max_point.y
     end
 
-    node.bounding_box.point = min_point
-    node.bounding_box.width = max_point.x - min_point.x
-    node.bounding_box.height = max_point.y - min_point.y
+    return min_point, max_point
   end
 
   def split_node(node)

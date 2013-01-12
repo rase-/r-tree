@@ -1,7 +1,9 @@
 require_relative "boundingbox.rb"
 require_relative "node.rb"
+require_relative "boundingbox_searchable.rb"
 
 class QuadTree
+  include BoundingBoxSearchable
   attr_reader :root, :max_elements
 
   def initialize(bounding_box, max_elements=50, max_depth=nil)
@@ -20,27 +22,7 @@ class QuadTree
     split_node(node) if node.points.length > @max_elements
   end
 
-  # Query targets a specified area
-  def search(bounding_box)
-    points_covered(@root, bounding_box, [])
-  end
-
-  alias_method :rect_search, :search
-
-  private
-  def points_covered(node, bounding_box, points)
-    if node.leaf?
-      node.points.each do |point|
-        points << point if bounding_box.covers? point
-      end
-    end
-
-    node.children.each do |child|
-      points_covered(child, bounding_box, points) if child.bounding_box.intersects?(bounding_box)
-    end
-    points
-  end
-
+private
   # needs refactoring
   def split_node(node)
     return if (not @max_depth.nil?) and node.depth >= @max_depth
