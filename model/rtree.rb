@@ -165,7 +165,7 @@ class RTree
   def split_leaf(node)
     unassigned = node.points
     first_group = node
-    second_group = Node.new(node.bounding_box.deepcopy)
+    second_group = Node.new(node.bounding_box)
     second_group.parent = node.parent
     second_group.parent.children << second_group unless second_group.root?
     first_group.clear # references node
@@ -201,7 +201,7 @@ class RTree
     first_group = node
     second_group = Node.new(node.bounding_box.deepcopy)
     second_group.parent = node.parent
-    second_group.parent.children << second_group unless second_group.root?
+    second_group.parent.children << second_group unless second_group.parent.nil?
     first_group.clear # references node
 
     one_seed, other_seed = pick_seeds_from_nodes(unassigned)
@@ -275,7 +275,8 @@ class RTree
       elsif second_node.children.count < first_node.children.count or second_node.points.count < first_node.points.count
         second_node
       else
-        Random.rand > 0.5 ? first_node : second_node # Choose by random
+        # Random.rand > 0.5 ? first_node : second_node # Choose by random
+        first_node
       end
   end
 
@@ -335,7 +336,7 @@ class RTree
     chosen = points.max_by do |point|
       (enlargement_needed(first_group, point) - enlargement_needed(second_group, point)).abs
     end
-    points.delete chosen
+    points.delete_at points.index(chosen)
     return chosen
   end
 end
