@@ -26,9 +26,9 @@ class Node
     @points << point
   end
 
-  def clear
-    @points = []
-    @children = []
+  def clear(which=nil)
+    @points = [] if which.nil? or which == :points
+    @children = [] if which.nil? or which == :children
   end
 
   def ==(node)
