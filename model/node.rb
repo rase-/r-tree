@@ -35,7 +35,6 @@ class Node
     @bounding_box == node.bounding_box and @points == node.points and @children == node.children
   end
 
-  # Only used by rtree
   def root?
     self.parent.nil?
   end

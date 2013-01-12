@@ -1,5 +1,5 @@
 require_relative "boundingbox.rb"
-require_relative "node.rb"
+require_relative "rtree_node.rb"
 require_relative "boundingbox_searchable.rb"
 
 NodePair = Struct.new(:first, :second)
@@ -10,7 +10,7 @@ class RTree
   attr_reader :root, :max_elements, :min_elements
 
   def initialize(bounding_box, max=50, min=15)
-    @root = Node.new(bounding_box)
+    @root = RTreeNode.new(bounding_box)
     @max_elements = max
     @min_elements = min # should be <= max_elements/2
     @space = bounding_box.deepcopy
@@ -30,33 +30,8 @@ class RTree
   private
   def choose_leaf(node, point)
     return node if node.leaf?
-    child_with_min_enlargement = node.children[0]
-    min_enlargement = enlargement_needed(child_with_min_enlargement, point)
-    child_with_min_enlargement = node.children.min_by { |child| enlargement_needed(child, point) }
+    child_with_min_enlargement = node.children.min_by { |child| child.enlargement_needed(point) }
     return choose_leaf(child_with_min_enlargement, point)
-  end
-
-  def enlargement_needed(node, point)
-    return 0 if node.bounding_box.covers? point
-    bbox = node.bounding_box
-    # Choice depends on the orientation between the box and the point for both dimensions
-    # The other is always at most 0, so max can be used
-    width_increase = [(bbox.point.x - point.x), (point.x - (bbox.point.x + bbox.width))].max
-    height_increase = [(bbox.point.y - point.y), (point.y - (bbox.point.y + bbox.height))].max
-    increased_area = (bbox.width + width_increase) * (bbox.height + height_increase)
-    increased_area - bbox.area
-  end
-
-  # Replace with a more efficient algorithm relying on arithmetic operations only?
-  def enlargement_needed_to_consume_bounding_box(node, bounding_box)
-    # width_increase = (node.bounding_box.point.x - bounding_box.point.x + bounding_box.width).abs
-    # height_increase = (node.bounding_box.point.y - bounding_box.point.y + bounding_box.height).abs
-    # width_increase + height_increase
-    bounding_node = Node.new(@space.deepcopy)
-    bounding_node.children << Node.new(node.bounding_box)
-    bounding_node.children << Node.new(bounding_box)
-    minimize_bounding_box(bounding_node)
-    bounding_node.bounding_box.area - node.bounding_box.area
   end
 
   def adjust_tree(left, right)
@@ -65,9 +40,9 @@ class RTree
       return
     end
 
-    minimize_bounding_box(left)
+    left.minimize_bounding_box
     unless right.nil?
-      minimize_bounding_box(right) unless right.root? # we don't want to minimize root's bounding box
+      right.minimize_bounding_box unless right.root? # we don't want to minimize root's bounding box
       if left.parent.children.count > @max_elements
         new_left, new_right = split_node(left.parent)
         adjust_tree(new_left, new_right)
@@ -80,7 +55,7 @@ class RTree
   def finish_adjusting(left, right)
     unless right.nil?
       # don't really know what to do here, i.e., should I redo root? how? probably not any different than this if I keep space fixed
-      @root = Node.new(@space.deepcopy)
+      @root = RTreeNode.new(@space.deepcopy)
       @root.children << left
       @root.children << right
       left.parent = @root
@@ -90,114 +65,59 @@ class RTree
   end
 
   def minimize_bounding_boxes(*nodes)
-    nodes.each { |node| minimize_bounding_box(node) }
+    nodes.each { |node| node.minimize_bounding_box }
   end
 
-  def minimize_bounding_box(node)
-    min_point = Point.new(Float::INFINITY, Float::INFINITY)
-    max_point = Point.new(-Float::INFINITY, -Float::INFINITY)
-    if node.leaf?
-      min_point, max_point = find_points_defining_minimum_bounding_box_of_leaf(node, min_point, max_point)
-    else
-      min_point, max_point = find_points_defining_minimum_bounding_box_of_inner_node(node, min_point, max_point)
-    end
-
-    node.bounding_box.point = min_point
-    node.bounding_box.width = max_point.x - min_point.x
-    node.bounding_box.height = max_point.y - min_point.y
-  end
-
-  def find_points_defining_minimum_bounding_box_of_leaf(node, min_point, max_point)
-    node.points.each do |point|
-      min_point.x = point.x if point.x < min_point.x
-      min_point.y = point.y if point.y < min_point.y
-      max_point.x = point.x if point.x > max_point.x
-      max_point.y = point.y if point.y > max_point.y
-    end
-
-    return min_point, max_point
-  end
-
-  def find_points_defining_minimum_bounding_box_of_inner_node(node, min_point, max_point)
-    node.children.each do |child|
-      child.parent = node # Making sure a child know's its parent
-      bbox = child.bounding_box
-      min_point.x = bbox.point.x if bbox.point.x < min_point.x
-      min_point.y = bbox.point.y if bbox.point.y < min_point.y
-      max_point.x = bbox.point.x + bbox.width if bbox.point.x + bbox.width > max_point.x
-      max_point.y = bbox.point.y + bbox.height if bbox.point.y + bbox.height > max_point.y
-    end
-
-    return min_point, max_point
-  end
-
-  def split_node(node)
-    if node.leaf?
-      split_leaf(node)
-    else
-      split_inner_node(node)
-    end
-  end
-
-  def split_leaf(node)
-    unassigned = node.points
+  def create_two_new_nodes(node)
     first_group = node
-    second_group = Node.new(node.bounding_box.deepcopy)
+    second_group = RTreeNode.new(node.bounding_box.deepcopy)
     second_group.parent = node.parent
     second_group.parent.children << second_group unless second_group.root?
     first_group.clear # references node
-
-    one_seed, other_seed = pick_seeds_from_points(unassigned)
-    first_group.points << one_seed
-    second_group.points << other_seed
-    minimize_bounding_boxes(first_group, second_group)
-    until unassigned.empty?
-      if unfinished_node = splitting_terminable?(first_group, second_group, unassigned)
-        unassigned.each do |point|
-          first_group.points << point if unfinished_node == :first
-          second_group.points << point if unfinished_node == :second
-        end
-        minimize_bounding_boxes(first_group, second_group)
-        return first_group, second_group
-      end
-
-      next_pick = pick_next_point(unassigned, first_group, second_group)
-      chosen = choose_by_primary_criteria(first_group, second_group, next_pick)
-      chosen.points << next_pick
-      minimize_bounding_box(chosen)
-    end
-
     return first_group, second_group
   end
 
-  # quadratic split
-  # maybe refactor with some matcher DSL
-  def split_inner_node(node)
-    unassigned = node.children 
-    first_group = node
-    second_group = Node.new(node.bounding_box.deepcopy)
-    second_group.parent = node.parent
-    second_group.parent.children << second_group unless second_group.parent.nil?
-    first_group.clear # references node
+  def initialize_nodes_with_first_seeds(unassigned, first_group, second_group, mode)
+    one_seed, other_seed = (mode == :leaf) ? pick_seeds_from_points(unassigned) : pick_seeds_from_nodes(unassigned)
+    first_group.points << one_seed if mode == :leaf
+    second_group.points << other_seed if mode == :leaf
+    first_group.children << one_seed if mode == :inner
+    second_group.children << other_seed if mode == :inner
+  end
 
-    one_seed, other_seed = pick_seeds_from_nodes(unassigned)
-    first_group.children << one_seed
-    second_group.children << other_seed
+  def select_new_seed_and_its_parent_and_append(unassigned, first_group, second_group, mode)
+    next_pick = (mode == :leaf) ? pick_next_point(unassigned, first_group, second_group) : pick_next_child(unassigned, first_group, second_group)
+    chosen = choose_by_primary_criteria(first_group, second_group, next_pick)
+    chosen.points << next_pick if mode == :leaf
+    chosen.children << next_pick if mode == :inner
+    return chosen
+  end
+
+  def bulk_add_to(unfinished_node, first_group, second_group, unassigned, mode)
+    unassigned.each do |element|
+      first_group.points << element if unfinished_node == :first and mode == :leaf
+      second_group.points << element if unfinished_node == :second and mode == :leaf
+      first_group.children << element if unfinished_node == :first and mode == :inner
+      second_group.children << element if unfinished_node == :second and mode == :inner
+    end
+  end
+
+  def split_node(node)
+    mode = node.leaf? ? :leaf : :inner
+    unassigned = (mode == :leaf) ? node.points : node.children
+    first_group, second_group = create_two_new_nodes node
+
+    initialize_nodes_with_first_seeds(unassigned, first_group, second_group, mode)
     minimize_bounding_boxes(first_group, second_group)
     until unassigned.empty?
       if unfinished_node = splitting_terminable?(first_group, second_group, unassigned)
-        unassigned.each do |node|
-          first_group.children << node if unfinished_node == :first
-          second_group.children << node if unfinished_node == :second
-        end
+        bulk_add_to unfinished_node, first_group, second_group, unassigned, mode
         minimize_bounding_boxes(first_group, second_group)
         return first_group, second_group
       end
 
-      next_pick = pick_next_child(unassigned, first_group, second_group)
-      chosen = choose_by_primary_criteria(first_group, second_group, next_pick)
-      chosen.children << next_pick
-      minimize_bounding_box(chosen)
+      chosen = select_new_seed_and_its_parent_and_append(unassigned, first_group, second_group, mode)
+      chosen.minimize_bounding_box
     end
 
     return first_group, second_group
@@ -216,11 +136,11 @@ class RTree
   # maybe refactor with some matcher DSL
   def choose_by_primary_criteria(first_node, second_node, next_pick)
     if next_pick.is_a? Node
-      enlargement_of_first = enlargement_needed_to_consume_bounding_box(first_node, next_pick.bounding_box)
-      enlargement_of_second = enlargement_needed_to_consume_bounding_box(second_node, next_pick.bounding_box)
+      enlargement_of_first = first_node.enlargement_needed_to_consume_bounding_box(next_pick.bounding_box, @space)
+      enlargement_of_second = second_node.enlargement_needed_to_consume_bounding_box(next_pick.bounding_box, @space)
     else
-      enlargement_of_first = enlargement_needed(first_node, next_pick)
-      enlargement_of_second = enlargement_needed(second_node, next_pick)
+      enlargement_of_first = first_node.enlargement_needed(next_pick)
+      enlargement_of_second = second_node.enlargement_needed(next_pick)
     end
 
     if  enlargement_of_first < enlargement_of_second
@@ -267,7 +187,7 @@ class RTree
 
   def pick_seeds_from_points(points)
     nodes = points.collect do |point|
-      Node.new(BoundingBox.new(point, 0, 0))
+      RTreeNode.new(BoundingBox.new(point, 0, 0))
     end
     first, second = pick_seeds_from_nodes(nodes)
     points.delete_at points.index(first.bounding_box.point)
@@ -291,17 +211,17 @@ class RTree
   # maybe replace this with area of combined box, no need to actually combine boxes
   # Creates a box that covers the given two boxes as tightly as possible
   def create_superbox(first_box, second_box)
-    bounding_node = Node.new(@space.deepcopy)
-    bounding_node.children << Node.new(first_box)
-    bounding_node.children << Node.new(second_box)
-    minimize_bounding_box(bounding_node)
+    bounding_node = RTreeNode.new(@space.deepcopy)
+    bounding_node.children << RTreeNode.new(first_box)
+    bounding_node.children << RTreeNode.new(second_box)
+    bounding_node.minimize_bounding_box
     bounding_node.bounding_box 
   end
 
   # quadratic split pick next
   def pick_next_child(nodes, first_group, second_group)
     chosen = nodes.max_by do |node|
-      (enlargement_needed_to_consume_bounding_box(first_group, node.bounding_box) - enlargement_needed_to_consume_bounding_box(second_group, node.bounding_box)).abs
+      (first_group.enlargement_needed_to_consume_bounding_box(node.bounding_box, @space) - second_group.enlargement_needed_to_consume_bounding_box(node.bounding_box, @space)).abs
     end
     nodes.delete chosen
     return chosen
@@ -309,7 +229,7 @@ class RTree
 
   def pick_next_point(points, first_group, second_group)
     chosen = points.max_by do |point|
-      (enlargement_needed(first_group, point) - enlargement_needed(second_group, point)).abs
+      (first_group.enlargement_needed(point) - second_group.enlargement_needed(point)).abs
     end
     points.delete_at points.index(chosen)
     return chosen
