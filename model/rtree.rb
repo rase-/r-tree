@@ -68,7 +68,31 @@ class RTree
     nodes.each { |node| node.minimize_bounding_box }
   end
 
-  def create_two_new_nodes(node)
+  def split_node(node)
+    mode = node.leaf? ? :leaf : :inner
+    unassigned = (mode == :leaf) ? node.points : node.children
+    first_group, second_group = create_two_new_nodes_from node
+
+    initialize_nodes_with_first_seeds(unassigned, first_group, second_group, mode)
+    minimize_bounding_boxes(first_group, second_group)
+    assign_rest(unassigned, first_group, second_group, mode)
+  end
+
+  def assign_rest(unassigned, first_group, second_group, mode)
+    until unassigned.empty?
+      if unfinished_node = splitting_terminable?(first_group, second_group, unassigned)
+        bulk_add_to unfinished_node, first_group, second_group, unassigned, mode
+        minimize_bounding_boxes(first_group, second_group)
+        return first_group, second_group
+      end
+
+      chosen = select_new_seed_and_its_parent_and_append(unassigned, first_group, second_group, mode)
+      chosen.minimize_bounding_box
+    end
+    return first_group, second_group
+  end
+
+  def create_two_new_nodes_from(node)
     first_group = node
     second_group = RTreeNode.new(node.bounding_box.deepcopy)
     second_group.parent = node.parent
@@ -100,27 +124,6 @@ class RTree
       first_group.children << element if unfinished_node == :first and mode == :inner
       second_group.children << element if unfinished_node == :second and mode == :inner
     end
-  end
-
-  def split_node(node)
-    mode = node.leaf? ? :leaf : :inner
-    unassigned = (mode == :leaf) ? node.points : node.children
-    first_group, second_group = create_two_new_nodes node
-
-    initialize_nodes_with_first_seeds(unassigned, first_group, second_group, mode)
-    minimize_bounding_boxes(first_group, second_group)
-    until unassigned.empty?
-      if unfinished_node = splitting_terminable?(first_group, second_group, unassigned)
-        bulk_add_to unfinished_node, first_group, second_group, unassigned, mode
-        minimize_bounding_boxes(first_group, second_group)
-        return first_group, second_group
-      end
-
-      chosen = select_new_seed_and_its_parent_and_append(unassigned, first_group, second_group, mode)
-      chosen.minimize_bounding_box
-    end
-
-    return first_group, second_group
   end
 
   def splitting_terminable?(first_group, second_group, unassigned)
