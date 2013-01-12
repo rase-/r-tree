@@ -54,7 +54,7 @@ describe "Search" do
     end
 
     it "should give same amount of results with quadtree and rtree for box: 0 0 1000 1000" do
-      search_box = BoundingBox.new(Point.new(280000,2700000), 20000, 200000)
+      search_box = BoundingBox.new(Point.new(280000,2700000), 30000, 300000)
       quadtree_results = quadtree.search search_box
       rtree_results = rtree.search search_box
       puts "RESULTS: #{quadtree_results.count}" # start debug

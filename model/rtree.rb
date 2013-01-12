@@ -48,17 +48,24 @@ class RTree
   def enlargement_needed(node, point)
     return 0 if node.bounding_box.covers? point
     bbox = node.bounding_box
-    width_increase = [(bbox.point.x - point.x), (point.x - (bbox.point.x + bbox.width))].min
-    height_increase = [(bbox.point.y - point.y), (point.y - (bbox.point.y + bbox.height))].min
+    # Choice depends on the orientation between the box and the point for both dimensions
+    # The other is always at most 0, so max can be used
+    width_increase = [(bbox.point.x - point.x), (point.x - (bbox.point.x + bbox.width))].max
+    height_increase = [(bbox.point.y - point.y), (point.y - (bbox.point.y + bbox.height))].max
     increased_area = (bbox.width + width_increase) * (bbox.height + height_increase)
     increased_area - bbox.area
   end
 
-  # Is this sufficient?
+  # Replace with a more efficient algorithm relying on arithmetic operations only?
   def enlargement_needed_to_consume_bounding_box(node, bounding_box)
-    width_increase = (node.bounding_box.point.x - bounding_box.point.x + bounding_box.width).abs
-    height_increase = (node.bounding_box.point.y - bounding_box.point.y + bounding_box.height).abs
-    width_increase + height_increase
+    # width_increase = (node.bounding_box.point.x - bounding_box.point.x + bounding_box.width).abs
+    # height_increase = (node.bounding_box.point.y - bounding_box.point.y + bounding_box.height).abs
+    # width_increase + height_increase
+    bounding_node = Node.new(@space.deepcopy)
+    bounding_node.children << Node.new(node.bounding_box)
+    bounding_node.children << Node.new(bounding_box)
+    minimize_bounding_box(bounding_node)
+    bounding_node.bounding_box.area - node.bounding_box.area
   end
 
   def points_covered(node, bounding_box, points)
@@ -117,10 +124,8 @@ class RTree
   end
 
   def minimize_bounding_box_of_leaf(node)
-    positive_infinity = 1.0/0
-    negative_infinity = -1.0/0
-    min_point = Point.new(positive_infinity, positive_infinity)
-    max_point = Point.new(negative_infinity, negative_infinity)
+    min_point = Point.new(Float::INFINITY, Float::INFINITY)
+    max_point = Point.new(-Float::INFINITY, -Float::INFINITY)
 
     node.points.each do |point|
       min_point.x = point.x if point.x < min_point.x
@@ -135,10 +140,8 @@ class RTree
   end
 
   def minimize_bounding_box_of_inner_node(node)
-    positive_infinity = 1.0/0
-    negative_infinity = -1.0/0
-    min_point = Point.new(positive_infinity, positive_infinity)
-    max_point = Point.new(negative_infinity, negative_infinity)
+    min_point = Point.new(Float::INFINITY, Float::INFINITY)
+    max_point = Point.new(-Float::INFINITY, -Float::INFINITY)
     node.children.each do |child|
       # will i break child to parent relationship somewhere? this would be a good place to fix that
       child.parent = node # just in case, let's see what happens
@@ -165,11 +168,10 @@ class RTree
   def split_leaf(node)
     unassigned = node.points
     first_group = node
-    second_group = Node.new(node.bounding_box)
+    second_group = Node.new(node.bounding_box.deepcopy)
     second_group.parent = node.parent
     second_group.parent.children << second_group unless second_group.root?
     first_group.clear # references node
-
 
     one_seed, other_seed = pick_seeds_from_points(unassigned)
     first_group.points << one_seed
@@ -229,9 +231,9 @@ class RTree
 
   def splitting_terminable?(first_group, second_group, unassigned)
     if first_group.children.count >= @min_elements and second_group.children.count + unassigned.count == @min_elements
-      :first
-    elsif second_group.children.count >= @min_elements and first_group.children.count + unassigned.count == @min_elements
       :second
+    elsif second_group.children.count >= @min_elements and first_group.children.count + unassigned.count == @min_elements
+      :first
     else
       false
     end
@@ -275,8 +277,7 @@ class RTree
       elsif second_node.children.count < first_node.children.count or second_node.points.count < first_node.points.count
         second_node
       else
-        # Random.rand > 0.5 ? first_node : second_node # Choose by random
-        first_node
+        Random.rand > 0.5 ? first_node : second_node # Choose by random
       end
   end
 
