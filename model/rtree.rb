@@ -12,7 +12,7 @@ class RTree
   def initialize(bounding_box, max=50, min=15)
     @root = RTreeNode.new(bounding_box)
     @max_elements = max
-    @min_elements = min # should be <= max_elements/2
+    @min_elements = min # should be at most max_elements/2
     @space = bounding_box.deepcopy
   end
 

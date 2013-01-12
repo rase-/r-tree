@@ -3,15 +3,19 @@ require_relative "../model/rtree.rb"
 require_relative "../model/point.rb"
 require_relative "../services/analyzer.rb"
 
+spaces = { 
+  wildcard: BoundingBox.new(Point.new(0, 0), 99999999999, 9999999999),
+  real: BoundingBox.new(Point.new(246960, 2712194), 68865, 73104),
+  generated: BoundingBox.new(Point.new(0,0), 100000, 100000)
+}
+
 # Initialize  
 datafilename = ARGV[0]
 queryfilename = ARGV[1]
+space_selected = ARGV[2].to_sym
 
 # The code to decide space and initialize trees
-# space of real converted data: 246960 2712194 68865 73104
-#space = BoundingBox.new(Point.new(0, 0), 99999999999, 9999999999) # wild card
-space = BoundingBox.new(Point.new(246960, 2712194), 68865, 73104)
-#space = BoundingBox.new(Point.new(0,0), 100000, 100000) # the space of generated data, need to devise one for the real spatial data
+space = spaces[space_selected]
 quadtree = QuadTree.new space
 rtree = RTree.new space
 
