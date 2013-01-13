@@ -9,6 +9,6 @@ number_of_examples = ARGV[1].to_i
 file = File.new(outputfilename, "w")
 (1..number_of_examples).each do |i|
   # format is x,y
-  file.write("#{x + Random.rand(90000..width)},#{y + Random.rand(90000..height)}\n")
+  file.write("#{x + Random.rand(99000..width)},#{y + Random.rand(99000..height)}\n")
 end
 file.close

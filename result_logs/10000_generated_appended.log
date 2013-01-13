@@ -1,0 +1,20 @@
+[2013-01-13 14:46:10 +0200] Bulk insertion and randomization of input took 135.07 ms for QuadTree
+[2013-01-13 14:46:18 +0200] Queries run in 8281.955999999998 ms for QuadTree
+[2013-01-13 14:46:34 +0200] Bulk insertion and randomization of input took 16052.429 ms for RTree
+[2013-01-13 14:47:19 +0200] Queries run in 44999.116 ms for RTree
+[2013-01-13 14:47:19 +0200] Bulk insertion and randomization of input took 162.731 ms for QuadTree
+[2013-01-13 14:47:28 +0200] Queries run in 9240.929 ms for QuadTree
+[2013-01-13 14:47:40 +0200] Bulk insertion and randomization of input took 11289.588 ms for RTree
+[2013-01-13 14:48:15 +0200] Queries run in 34798.598 ms for RTree
+[2013-01-13 14:48:15 +0200] Bulk insertion and randomization of input took 134.56 ms for QuadTree
+[2013-01-13 14:48:24 +0200] Queries run in 9547.26 ms for QuadTree
+[2013-01-13 14:48:53 +0200] Bulk insertion and randomization of input took 28638.667999999998 ms for RTree
+[2013-01-13 14:49:41 +0200] Queries run in 48028.463 ms for RTree
+[2013-01-13 14:49:41 +0200] Bulk insertion and randomization of input took 134.17399999999998 ms for QuadTree
+[2013-01-13 14:49:50 +0200] Queries run in 8745.255000000001 ms for QuadTree
+[2013-01-13 14:50:09 +0200] Bulk insertion and randomization of input took 19585.920000000002 ms for RTree
+[2013-01-13 14:50:55 +0200] Queries run in 45443.832 ms for RTree
+[2013-01-13 14:50:55 +0200] Bulk insertion and randomization of input took 152.023 ms for QuadTree
+[2013-01-13 14:51:04 +0200] Queries run in 9256.697 ms for QuadTree
+[2013-01-13 14:51:23 +0200] Bulk insertion and randomization of input took 19113.150999999998 ms for RTree
+[2013-01-13 14:52:10 +0200] Queries run in 46585.880000000005 ms for RTree

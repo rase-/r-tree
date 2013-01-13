@@ -1,3 +1,4 @@
 Analysis of running time for searches of spatial data from quadtree and R-tree. Analysis of insertion time also recorded. 
 
-Still buggy. Need to find mistakes in RTree source
+Documentation can be found here, unfortunately in finnish:
+https://github.com/rase-/r-tree/wiki

@@ -4,7 +4,7 @@ require_relative "../model/point.rb"
 require_relative "../services/analyzer.rb"
 
 spaces = { 
-  wildcard: BoundingBox.new(Point.new(0, 0), 99999999999, 9999999999),
+  wildcard: BoundingBox.new(Point.new(0, 0), 99999999999, 99999999999),
   real: BoundingBox.new(Point.new(246960, 2712194), 68865, 73104),
   generated: BoundingBox.new(Point.new(0,0), 100000, 100000)
 }

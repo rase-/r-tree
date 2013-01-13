@@ -6,7 +6,6 @@ class FileHandler
     @handlers = {:insertion => :create_insertion, :query => :create_query}
     @filename = filename
     @type = type
-    @rows_handled = 1
   end
 
   def open
@@ -19,7 +18,6 @@ class FileHandler
 
   def handle_row
     line = @file.readline
-    @rows_handled += 1
     self.send(@handlers[@type], line)
   end
 
@@ -32,7 +30,6 @@ class FileHandler
   end
 
   def close
-    puts "#{@rows_handled}"
     @file.close
   end 
 
