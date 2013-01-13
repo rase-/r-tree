@@ -1,5 +1,5 @@
 require_relative "../model/boundingbox.rb"
-require_relative "query_generator.rb"
+require_relative "../utils/query_generator.rb"
 Point = Struct.new(:x, :y)
 
 outputfile = ARGV[0]
